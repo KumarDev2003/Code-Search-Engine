@@ -8,7 +8,7 @@ std::vector<std::string> BasicTokenizer::tokenize(std::string line) {
 	while (i < n) {
 		while (i < n && !((line[i] >= 'a' && line[i] <= 'z') || (line[i] >= 'A' && line[i] <= 'Z'))) { i++; }
 		std::string word = "";
-		while (i < n && (line[i] >= 'a' && line[i] <= 'z') || (line[i] >= 'A' && line[i] <= 'Z')) {
+		while (i < n && ((line[i] >= 'a' && line[i] <= 'z') || (line[i] >= 'A' && line[i] <= 'Z'))) {
 			if (line[i] >= 'a' && line[i] <= 'z') {
 				word += line[i];
 			}

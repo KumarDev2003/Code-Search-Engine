@@ -1,13 +1,16 @@
 #pragma once
 
-#include "Location.h"
 #include <vector>
 #include <unordered_map>
+#include <filesystem>
+
+#include "Location.h"
 
 class IndexManager {
     IndexManager() {}
 public:
     static IndexManager* idxMgr;
+    std::unordered_map<std::string, int> fileIndex;
     std::unordered_map<std::string, std::vector<Location>> wordIndex;
     void addEntry(std::string word, Location location);
     std::vector<Location> getResults(std::string word);
@@ -15,5 +18,9 @@ public:
         if (!idxMgr) return idxMgr = new IndexManager();
         else return idxMgr;
     }
+    void indexSave(std::filesystem::path dirPath, std::unordered_map<std::string, int> fileMap,
+        std::unordered_map<std::string, std::vector<Location>> wordMap);
+    void indexLoad(std::filesystem::path dirPath, std::unordered_map<std::string, int>& fileMap,
+        std::unordered_map<std::string, std::vector<Location>>& wordMap);
     virtual ~IndexManager(){}
 };

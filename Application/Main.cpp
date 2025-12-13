@@ -1,10 +1,12 @@
 #include <iostream>
+#include <memory>
 //#include <thread> Karna h kya dekh lena baad me
 
-#include "BasicFileParser.h"
 #include "BasicTokenizer.h"
-#include "BasicSearchEngine.h"
 #include "IndexManager.h"
+#include "ParserFactory.h"
+#include "SearchStrategy.h"
+#include "CommandFactory.h"
 
 static bool valid(std::string& cmd, std::string& arg, std::string& parameter) {
 	if (cmd.size() < 4) return false;
@@ -28,8 +30,8 @@ static bool valid(std::string& cmd, std::string& arg, std::string& parameter) {
 int main() {
 
 	IndexManager* idxmgr = IndexManager::getInstance();
-	IFileParser* fileParser = new BasicFileParser();
-	ISearchEngine* basicSearchEngine = new BasicSearchEngine();
+	//std::unique_ptr<IFileParser> fileParser = ParserFactory::getParser("basic");
+	//std::unique_ptr<ISearchEngine> basicSearchEngine = SearchStrategy::strategy("basic");
 
 	std::cout << "Please enter the directory/folder path for indexing: -index path" << std::endl;
 
@@ -42,22 +44,8 @@ int main() {
 		else if (arg == "exit" || arg == "Exit") {
 			break;
 		}
-		else if (arg == "-index") {
-			fileParser->ParseFile(parameter);
-			std::cout << "Indexing has been done successfully. You can search the word by: -search word\n";
-		}
-		else if (arg == "-search") {
-			std::vector<Location> result = basicSearchEngine->search(parameter);
-			std::cout << "\nTotal occurnce of \""<< parameter << "\" is " << result.size() << std::endl;
-			for (Location word : result) {
-				std::cout << "{\n";
-				std::cout << word.filePath << "\n";
-				std::cout << "Line no. " << word.lineNumber << " " << word.lineText << std::endl;
-				std::cout << "}\n";
-			}
-		}
+		std::unique_ptr<ICommand> command = CommandFactory::getCommand(arg);
+		command->execute(parameter);
 	}
 	if(idxmgr) delete idxmgr;
-	if(fileParser) delete fileParser;
-	if(basicSearchEngine) delete basicSearchEngine;
 }

@@ -10,21 +10,23 @@ void IndexManager::addEntry(std::string word, Location location) {
     wordIndex[word].push_back(location);
 }
 
-std::vector<Location> IndexManager::getResults(std::string word) {
+ResultData IndexManager::getResults(std::string word) {
     IndexManager* idxMgr = IndexManager::getInstance();
-    return idxMgr->wordIndex[word];
+    ResultData resultData;
+    resultData.fileIndex = idxMgr->fileIndex;
+    resultData.wordLocations = idxMgr->wordIndex[word];
+    return resultData;
 }
 
-void IndexManager::indexSave(std::filesystem::path dirPath, std::unordered_map<std::string, int> fileMap,
+void IndexManager::indexSave(std::filesystem::path dirPath, std::unordered_map<int, std::string> fileMap,
     std::unordered_map<std::string, std::vector<Location>> wordMap) {
     IDataBase* db = DataBaseFactory::getDB("FileDataBase");
     db->save(dirPath, fileMap, wordMap);
+    db->load(dirPath, fileIndex, wordIndex);
 }
 
-void IndexManager::indexLoad(std::filesystem::path dirPath, std::unordered_map<std::string, int>& fileMap,
+void IndexManager::indexLoad(std::filesystem::path dirPath, std::unordered_map<int, std::string>& fileMap,
     std::unordered_map<std::string, std::vector<Location>>& wordMap) {
     IDataBase* db = DataBaseFactory::getDB("FileDataBase");
-    std::unordered_map<std::string, int> fileMa;
-    std::unordered_map<std::string, std::vector<Location>> wordMa;
-    db->load(dirPath, fileMa, wordMa);
+    db->load(dirPath, fileIndex, wordIndex);
 }

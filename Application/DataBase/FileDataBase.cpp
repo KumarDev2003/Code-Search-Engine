@@ -40,7 +40,7 @@ IDataBase * FileDataBase::getInstance() {
     return fileDBPtr;
 }
 
-void FileDataBase::save(std::filesystem::path dirPath, std::unordered_map<std::string, int> fileMap,
+void FileDataBase::save(std::filesystem::path dirPath, std::unordered_map<int, std::string> fileMap,
 	std::unordered_map<std::string, std::vector<Location>> wordMap) {
 
     std::filesystem::path current = std::filesystem::current_path();
@@ -62,14 +62,35 @@ void FileDataBase::save(std::filesystem::path dirPath, std::unordered_map<std::s
 
     std::filesystem::path filePath = dataDir / dataFileName;
 
-    std::ofstream file(filePath);
+    auto dirTime = std::filesystem::last_write_time(dirPath);
+    std::string currentDirStamp =
+        std::to_string(std::chrono::duration_cast<std::chrono::seconds>(
+            dirTime.time_since_epoch()
+        ).count());
+
+    // if index file exists → read stored timestamp
     if (std::filesystem::exists(filePath)) {
+        std::ifstream read(filePath);
+        std::string storedStamp = "";
+        std::getline(read, storedStamp);
+
+        if (storedStamp == currentDirStamp) {
+            std::cout << "Already indexed, no changes detected...\n";
+            return;
+        }
+    }
+
+    std::ofstream file(filePath);
+    if (!std::filesystem::exists(filePath)) {
         std::cout << "Folder created\n";
     }
 
+    // 🔑 write directory timestamp at top
+    file << currentDirStamp << "\n";
+
     file << "{\n";
     for (auto f : fileMap) {
-        file << f.second << ":" << f.first << "\n";
+        file << f.first << ":" << f.second << "\n";
     }
     file << "}\n";
 
@@ -84,7 +105,7 @@ void FileDataBase::save(std::filesystem::path dirPath, std::unordered_map<std::s
     file << "}\n";
 }
 
-void FileDataBase::load(std::filesystem::path& dirPath, std::unordered_map<std::string, int>& fileMap,
+void FileDataBase::load(std::filesystem::path& dirPath, std::unordered_map<int, std::string>& fileMap,
     std::unordered_map<std::string, std::vector<Location>>& wordMap) {
     std::filesystem::path current = std::filesystem::current_path();
     std::filesystem::path projectRoot = current.parent_path();
@@ -102,6 +123,7 @@ void FileDataBase::load(std::filesystem::path& dirPath, std::unordered_map<std::
     std::string line;
     getline(file, line);
     getline(file, line);
+    getline(file, line);
     while (!file.eof()) {
         if (line[0] == '}') break;
         int n = line.size();
@@ -113,7 +135,7 @@ void FileDataBase::load(std::filesystem::path& dirPath, std::unordered_map<std::
         }
         int fIdx = std::stoi(temp);
         std::string filePath = line.substr(i + 1);
-        fileMap[filePath] = fIdx;
+        fileMap[fIdx] = filePath;
         getline(file, line);
     }
     getline(file, line);

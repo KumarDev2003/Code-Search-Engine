@@ -4,10 +4,11 @@
 #include <string>
 
 #include "Location.h"
+#include "ResultData.h"
 
 
 class ISearchEngine {
 public:
-	virtual std::vector<Location> search(std::string word) = 0;
+	virtual ResultData search(std::string word) = 0;
 	virtual ~ISearchEngine() {}
 };
